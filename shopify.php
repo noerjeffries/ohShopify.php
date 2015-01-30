@@ -38,6 +38,10 @@ class ShopifyClient {
 		return '';
 	}
 
+	public function setAccessToken($token) {
+		$this->token = $token;
+	}
+
 	public function callsMade()
 	{
 		return $this->shopApiCallLimitParam(0);
