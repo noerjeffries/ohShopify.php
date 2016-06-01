@@ -17,6 +17,14 @@ Basic needs for authorization and redirecting
 <?php
 
 	require 'shopify.php';
+
+	/* Define your APP`s key and secret*/
+	define('SHOPIFY_API_KEY','');
+	define('SHOPIFY_SECRET','');
+	
+	/* Define requested scope (access rights) - checkout https://docs.shopify.com/api/authentication/oauth#scopes 	*/
+	define('SHOPIFY_SCOPE','');	//eg: define('SHOPIFY_SCOPE','read_orders,write_orders');
+	
 	if (isset($_GET['code'])) { // if the code param has been sent to this page... we are in Step 2
 		// Step 2: do a form POST to get the access token
 		$shopifyClient = new ShopifyClient($_GET['shop'], "", SHOPIFY_API_KEY, SHOPIFY_SECRET);
@@ -43,9 +51,9 @@ Basic needs for authorization and redirecting
 		if ($_SERVER["HTTPS"] == "on") { $pageURL .= "s"; }
 		$pageURL .= "://";
 		if ($_SERVER["SERVER_PORT"] != "80") {
-			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["SCRIPT_NAME"];
 		} else {
-			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"];
 		}
 	
 		// redirect to authorize url
