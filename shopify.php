@@ -31,10 +31,8 @@ class ShopifyClient {
 		$payload = "client_id={$this->api_key}&client_secret={$this->secret}&code=$code";
 		$response = $this->curlHttpApiRequest('POST', $url, '', $payload, array());
 		$response = json_decode($response, true);
-		if (isset($response['access_token'])) {
-			$this->token = $response['access_token'];
-			return $this->token;
-		}
+		if (isset($response['access_token']))
+			return $response['access_token'];
 		return '';
 	}
 
@@ -56,7 +54,7 @@ class ShopifyClient {
 	public function call($method, $path, $params=array())
 	{
 		$baseurl = "https://{$this->shop_domain}/";
-
+	
 		$url = $baseurl.ltrim($path, '/');
 		$query = in_array($method, array('GET','DELETE')) ? $params : array();
 		$payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
@@ -79,14 +77,10 @@ class ShopifyClient {
 		if(!is_array($query) || empty($query['hmac']) || !is_string($query['hmac']))
 			return false;
 
-		$hmac = $query['hmac'];
-		unset($query['hmac']);
-
-		if (isset($query['signature']))
-			unset($query['signature']);
-
 		$dataString = array();
 		foreach ($query as $key => $value) {
+			if(!in_array($key, array('shop', 'timestamp', 'code'))) continue;
+
 			$key = str_replace('=', '%3D', $key);
 			$key = str_replace('&', '%26', $key);
 			$key = str_replace('%', '%25', $key);
@@ -97,13 +91,13 @@ class ShopifyClient {
 			$dataString[] = $key . '=' . $value;
 		}
 		sort($dataString);
-
+		
 		$string = implode("&", $dataString);
 
 		$signatureBin = mhash(MHASH_SHA256, $string, $this->secret);
 		$signature = bin2hex($signatureBin);
-
-		return $hmac == $signature;
+		
+		return $query['hmac'] == $signature;
 	}
 
 	private function curlHttpApiRequest($method, $url, $query='', $payload='', $request_headers=array())
@@ -144,7 +138,7 @@ class ShopifyClient {
 
 		curl_setopt ($ch, CURLOPT_CUSTOMREQUEST, $method);
 		if (!empty($request_headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
-
+		
 		if ($method != 'GET' && !empty($payload))
 		{
 			if (is_array($payload)) $payload = http_build_query($payload);
@@ -166,7 +160,7 @@ class ShopifyClient {
 
 		return $headers;
 	}
-
+	
 	private function shopApiCallLimitParam($index)
 	{
 		if ($this->last_response_headers == null)
@@ -175,7 +169,7 @@ class ShopifyClient {
 		}
 		$params = explode('/', $this->last_response_headers['http_x_shopify_shop_api_call_limit']);
 		return (int) $params[$index];
-	}
+	}	
 }
 
 class ShopifyCurlException extends Exception { }
@@ -186,7 +180,7 @@ class ShopifyApiException extends Exception
 	protected $params;
 	protected $response_headers;
 	protected $response;
-
+	
 	function __construct($method, $path, $params, $response_headers, $response)
 	{
 		$this->method = $method;
@@ -194,7 +188,7 @@ class ShopifyApiException extends Exception
 		$this->params = $params;
 		$this->response_headers = $response_headers;
 		$this->response = $response;
-
+		
 		parent::__construct($response_headers['http_status_message'], $response_headers['http_status_code']);
 	}
 
